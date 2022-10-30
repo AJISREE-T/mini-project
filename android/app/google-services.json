@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "396768199949",
+    "project_id": "trashcan-2269a",
+    "storage_bucket": "trashcan-2269a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396768199949:android:e65c5cd6f55f3e7c801c44",
+        "android_client_info": {
+          "package_name": "com.example.trashcan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396768199949-mivtlt0mft41gthhnmhe56lhscq583fl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDm5t9g9VfswRtkhYvHqky7TWTdKuDTcfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "396768199949-mivtlt0mft41gthhnmhe56lhscq583fl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
