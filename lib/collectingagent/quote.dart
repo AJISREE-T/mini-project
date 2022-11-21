@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:trashcan/validate/validate.dart';
 import 'package:trashcan/common/colors.dart';
 import 'package:uuid/uuid.dart';
@@ -96,17 +97,15 @@ class _QuotePageState extends State<QuotePage> {
                     ),
                     TextFormField(
                       controller: dateInputcontroller,
-                      //controller: passwordInputcontroller,
-                      //keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: "Pick up Date", //label
-                        //hintText: "abc@gmail.com",//hint for how to type
-                        border: OutlineInputBorder(
-                          borderRadius:
-                          BorderRadius.circular(20), //for rounded border
+                    //editing controller of this TextField
+                        decoration: const InputDecoration(
+                            icon: Icon(Icons.calendar_today), //icon of text field
+                            labelText: "Enter Date" //label text of field
                         ),
-                        //prefixIcon: Icon(Icons.email,color: Colors.blue,),
-                      ),
+                        readOnly: true,  // when true user cannot edit text
+                        onTap: () async {
+                         _showPicker();
+                        },
                       validator: (value) {
                         return validate.txtvalidator(value!);
                       },
@@ -142,7 +141,9 @@ class _QuotePageState extends State<QuotePage> {
                                 'astatus':0,
                                 'useracceptstatus':0,
                                 'completestatus':0,
-                                'date': DateTime.now()
+                                'date': DateTime.now(),
+                                'datechangestatus':0,
+                                'cstatus':0,
 
 
                               }).then((value) {
@@ -195,5 +196,28 @@ class _QuotePageState extends State<QuotePage> {
 
         )
     );
+  }
+
+
+  _showPicker()async{
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(), //get today's date
+        firstDate:DateTime(2000), //DateTime.now() - not to allow to choose before today.
+        lastDate: DateTime(2101)
+    );
+
+    if(pickedDate != null ){
+      print(pickedDate);  //get the picked date in the format => 2022-07-04 00:00:00.000
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+      print(formattedDate); //formatted date output using intl package =>  2022-07-04
+      //You can format date as per your need
+
+      setState(() {
+       dateInputcontroller.text = formattedDate; //set foratted date to TextField value.
+      });
+    }else{
+      print("Date is not selected");
+    }
   }
 }
