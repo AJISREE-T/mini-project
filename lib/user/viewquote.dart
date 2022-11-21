@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:trashcan/common/colors.dart';
 import 'package:trashcan/user/quote_edit.dart';
 class ViewQuote extends StatefulWidget {
@@ -22,6 +23,11 @@ class ViewQuote extends StatefulWidget {
 }
 
 class _ViewQuoteState extends State<ViewQuote> {
+
+
+  TextEditingController pickupdateController=TextEditingController();
+
+  String?datepickup;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +95,7 @@ class _ViewQuoteState extends State<ViewQuote> {
                                       style: TextStyle(fontSize:20,),
                                     ),
                                     subtitle: Text('RS: '+snapshot.data?.docs[index]['price']+'\n'+"Date: "+snapshot.data?.docs[index]['collectiondate']) ,
-                                    trailing: snapshot.data!.docs[index]['useracceptstatus']==0?Container(
+                                    trailing: snapshot.data!.docs[index]['useracceptstatus']==0 && snapshot.data!.docs[index]['cstatus']==0?Container(
                                         width: 80,
                                         height: 40,
                                         child: ElevatedButton(
@@ -112,7 +118,7 @@ class _ViewQuoteState extends State<ViewQuote> {
                                               ),
                                               shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(12))),
-                                        )):SizedBox.shrink(),
+                                        )):snapshot.data!.docs[index]['useracceptstatus']==1 && snapshot.data!.docs[index]['cstatus']==2?Text("Date Change Accepted"):snapshot.data!.docs[index]['useracceptstatus']==1 && snapshot.data!.docs[index]['cstatus']==1?Text("Order Cancelled by Agent"):Text("Waiting"),
 
                                   ),
 
@@ -142,11 +148,13 @@ class _ViewQuoteState extends State<ViewQuote> {
   {
 
 
-    TextEditingController category=TextEditingController();
+
 
 
     setState(() {
-      category.text=date;
+      pickupdateController.text=date;
+      datepickup=date;
+
 
     });
 
@@ -165,14 +173,20 @@ class _ViewQuoteState extends State<ViewQuote> {
 
                 children: [
 Text("Edit Pick up Date "),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Select Pickup Date"
-                    ),
 
-                    controller: category,
 
-                  ),
+                  TextField(
+                      controller:pickupdateController, //editing controller of this TextField
+                      decoration: const InputDecoration(
+                          icon: Icon(Icons.calendar_today), //icon of text field
+                  hintText: "Select Pickup Date"
+                      ),
+                      readOnly: true,  // when true user cannot edit text
+                      onTap: () async {
+                      _showPicker();
+                      }
+                  )
+
 
                 ],
               ),
@@ -180,25 +194,57 @@ Text("Edit Pick up Date "),
             ),
             actions: [
               ElevatedButton(onPressed: (){
-                FirebaseFirestore.instance.collection('Quote').doc(qid).update(
-                    {
-                      'useracceptstatus':1,
-                      'collectiondate':category.text,
-                    }).then((value) {
+
+                if(date==pickupdateController.text){
+                  FirebaseFirestore.instance.collection('Quote').doc(qid).update(
+                      {
+                        'useracceptstatus':1,
+
+                      }).then((value) {
 
 
-                  FirebaseFirestore.instance.collection('Ewaste').doc(qid).update({
-                    'agentacceptstatus':1,
-                    'useracceptstatus':1
+                    FirebaseFirestore.instance.collection('Ewaste').doc(qid).update({
+                      'agentacceptstatus':1,
+                      'useracceptstatus':1
+
+                    });
+                  }).then((value)
+
+                  {
+                    showsnackbar("Quote Accepted");
+                    Navigator.pop(context);
 
                   });
-                }).then((value)
 
-                {
-                  showsnackbar("Quote Accepted");
-                  Navigator.pop(context);
 
-                });
+                }else{
+
+
+                  FirebaseFirestore.instance.collection('Quote').doc(qid).update(
+                      {
+                        'useracceptstatus':1,
+                        'collectiondate':pickupdateController.text,
+                        'datechangestatus':1
+
+                      }).then((value) {
+
+
+                    FirebaseFirestore.instance.collection('Ewaste').doc(qid).update({
+                      'agentacceptstatus':1,
+                      'useracceptstatus':1
+
+                    });
+                  }).then((value)
+
+                  {
+                    showsnackbar("Quote Accepted");
+                    Navigator.pop(context);
+
+                  });
+                }
+
+
+
               },
                   child: Text("Ok")),
               ElevatedButton(onPressed: (){
@@ -220,5 +266,27 @@ Text("Edit Pick up Date "),
 
         )
     );
+  }
+
+  _showPicker()async{
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(), //get today's date
+        firstDate:DateTime(2000), //DateTime.now() - not to allow to choose before today.
+        lastDate: DateTime(2101)
+    );
+
+    if(pickedDate != null ){
+      print(pickedDate);  //get the picked date in the format => 2022-07-04 00:00:00.000
+      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); // format date in required form here we use yyyy-MM-dd that means time is removed
+      print(formattedDate); //formatted date output using intl package =>  2022-07-04
+      //You can format date as per your need
+
+      setState(() {
+        pickupdateController.text = formattedDate; //set foratted date to TextField value.
+      });
+    }else{
+      print("Date is not selected");
+    }
   }
 }
